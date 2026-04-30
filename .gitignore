@@ -1,0 +1,9 @@
+# Node
+node_modules/
+
+# Cloudflare
+.wrangler/
+*.local.vars
+
+# macOS
+.DS_Store

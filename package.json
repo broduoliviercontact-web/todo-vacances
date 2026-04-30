@@ -1,15 +1,18 @@
 {
-  "name": "cf-todo",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "todo-vacances",
+  "version": "2.0.0",
+  "description": "Packing list app with cloud save via Cloudflare Workers + KV",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "kv:put-index": "wrangler kv:key put --binding=TODO_KV __index_html__ --path ./public/index.html",
+    "kv:list": "wrangler kv:key list --binding=TODO_KV",
+    "setup": "npm run deploy && npm run kv:put-index"
   },
-  "keywords": [],
+  "keywords": ["cloudflare", "workers", "kv", "packing-list"],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
   "dependencies": {
     "wrangler": "^4.86.0"
   }

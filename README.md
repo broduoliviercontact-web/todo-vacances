@@ -1,48 +1,75 @@
-# Todo Vacances
+# Todo Vacances ☁️
 
-Une petite application web pour préparer une liste de choses à ne pas oublier avant de partir en vacances. Les données sont stockées dans le cloud via Cloudflare KV.
+Application web pour préparer sa valise avant les vacances.
+Passe de catégorie en catégorie (César, Miu, Plage, etc.), coche ce qui est prêt, et partage ta liste avec un lien court.
+
+## Deux modes de fonctionnement
+
+### 1. Mode Cloud (par défaut) — `?list=abc123`
+
+Clique **💾 Sauvegarder dans le cloud** pour générer un ID court.  
+Les données sont stockées sur **Cloudflare KV** et synchronisées automatiquement toutes les 4 secondes.
+
+- Le lien contient juste l'ID : `https://todo-vacances.pliskain.workers.dev/?list=abc123`
+- Partage-le, modifie-le, les changements sont visibles partout en temps réel
+
+### 2. Mode Local (legacy) — `?d=eyJ...`
+
+Sans cloud save, toutes les données restent dans l'URL encodées en Base64 (ancien comportement).
 
 ## Fonctionnalités
 
-- Ajouter des items dans une catégorie
-- Cocher les items déjà préparés
-- Supprimer un item
-- Créer/supprimer des catégories
-- Voir la progression de chaque catégorie
-- **Sauvegarder dans le cloud** avec un ID court (paramètre `?list=`)
-- Partager le lien pour retrouver ou envoyer la liste
+- ✅ Ajouter/supprimer des catégories et items
+- ✅ Cocher/décocher avec barre de progression
+- ✅ 💾 Sauvegarde cloud avec un clic
+- ☁️ Synchronisation auto toutes les 4s (mode cloud)
+- 🔗 Lien de partage court (mode cloud) ou complet encodé (mode local)
+- 📱 Responsive — conçu pour le téléphone
 
 ## Architecture
 
 ```text
 .
-├── src/index.js           # Worker (API + serveur HTML)
-├── public/index.html      # Application front-end
-├── wrangler.toml          # Config Cloudflare Workers
-├── package.json
-└── README.md
+├── src/index.js           # Cloudflare Worker (API + serve HTML)
+├── public/index.html      # Application front-end (SPA vanilla JS)
+├── wrangler.toml          # Config Cloudflare
+├── package.json           # Scripts npm + wrangler
+└── README.md              # Ce fichier
 ```
 
-Le worker sert :
-- **HTML** : lu depuis KV avec la clé `__index_html__`
-- **API** : `GET /api/lists/{id}` et `POST /api/lists/{id}`
+### Worker Routes
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/` | Sert `public/index.html` depuis KV (`__index_html__`) |
+| GET | `/api/lists/:id` | Retourne la liste JSON pour cet ID |
+| POST | `/api/lists/:id` | Sauvegarde la liste JSON pour cet ID |
+
+## Développement local
+
+```bash
+npm install
+npm run dev          # wrangler dev — Worker local
+```
 
 ## Déploiement
 
 ```bash
-npm install
-npm exec wrangler deploy
+npm run deploy       # wrangler deploy
+npm run kv:put-index # injecte public/index.html dans KV
 ```
 
-Puis injecter `public/index.html` dans KV :
+Ou en une ligne :
 ```bash
-npm exec wrangler kv:key put --binding=TODO_KV __index_html__ --path ./public/index.html
+npm run setup        # deploy + kv:put-index
 ```
 
-## Stack technique
-- **Cloudflare Workers** : backend / edge
-- **Cloudflare KV** : stockage persistant des listes
+## Stack
 
----
+- **Cloudflare Workers** — Edge computing
+- **Cloudflare KV** — Stockage clé-valeur pour les listes
+- **Vanilla JS + CSS** — Pas de framework front
 
-**URL publique** : https://todo-vacances.pliskain.workers.dev
+## License
+
+MIT — fait avec ❤️ par Corn
