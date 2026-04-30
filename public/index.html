@@ -207,12 +207,35 @@
             .add-btn { width: 100%; }
             .section-title { align-items: flex-start; }
         }
+    
+        .save-btn {
+            background: #48bb78; color: white; border: none;
+            padding: 10px 20px; border-radius: 30px; cursor: pointer;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            margin: 10px auto; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(72,187,120,0.3);
+        }
+        .save-btn:hover { background: #38a169; transform: translateY(-2px); }
+        .save-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .sync-badge {
+            text-align: center; font-size: 0.75rem; padding: 4px 12px;
+            border-radius: 20px; display: inline-block; margin-bottom: 10px;
+        }
+        .sync-badge.local { background: #ffeaa7; color: #b8860b; }
+        .sync-badge.cloud { background: #d4edda; color: #155724; }
+        .item-actions { opacity: 1 !important; }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🪟 Avant de partir</h1>
         <p class="subtitle">Packing list - Vacances</p>
+        <div style="text-align:center;">
+            <div id="sync-badge" class="sync-badge local">💾 Local</div>
+        </div>
+        <button class="save-btn" onclick="saveList()" id="save-btn">💾 Sauvegarder dans le cloud</button>
+        
 
         <div class="category-tools">
             <div class="share-title">➕ Créer une catégorie</div>
@@ -256,6 +279,8 @@
         const categoryIcons = ['🧳', '👕', '🧸', '🏖️', '🚗', '🏠', '⭐', '📦'];
 
         let lists = {};
+        let listId = null;
+        let isSaving = false;
         let categories = [];
 
         function encodeData() {
@@ -333,9 +358,14 @@
         }
 
         function getShareUrl() {
-            const encoded = encodeData();
             const url = new URL(window.location.href);
-            url.searchParams.set('d', encoded);
+            if (listId) {
+                url.searchParams.set('list', listId);
+                url.searchParams.delete('d');
+            } else {
+                const encoded = encodeData();
+                url.searchParams.set('d', encoded);
+            }
             return url.toString();
         }
 
@@ -345,8 +375,27 @@
             document.getElementById('share-url').value = url;
         }
 
-        function loadLists() {
+        async function loadLists() {
             const params = new URLSearchParams(window.location.search);
+            listId = params.get('list') || null;
+            
+            if (listId && listId.length >= 4) {
+                try {
+                    const resp = await fetch('/api/lists/' + listId);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        categories = data.categories;
+                        lists = data.lists;
+                        updateSyncBadge('cloud');
+                        renderAll();
+                        updateProgress();
+                        updateUrl();
+                        startAutoSave();
+                        return;
+                    }
+                } catch(e) { console.log('KV load failed', e); }
+            }
+            
             const encoded = params.get('d');
             if (encoded) {
                 const decoded = decodeData(encoded);
@@ -567,10 +616,53 @@
             });
         }
 
+
+        async function saveList() {
+            const id = listId || generateListId();
+            try {
+                const resp = await fetch('/api/lists/' + id, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categories, lists })
+                });
+                if (!resp.ok) throw new Error('Save failed');
+                listId = id;
+                window.history.replaceState({}, '', '/?list=' + id);
+                updateSyncBadge('cloud');
+                startAutoSave();
+                const btn = document.getElementById('save-btn');
+                btn.textContent = '✅ Sauvegardé !';
+                btn.disabled = true;
+                setTimeout(function() { btn.textContent = '☁️ Synchronisé'; }, 2000);
+            } catch(e) { alert('Erreur sauvegarde cloud: ' + e.message); }
+        }
+
+        function generateListId() {
+            var arr = new Uint8Array(6);
+            crypto.getRandomValues(arr);
+            return Array.from(arr, function(b) { return b.toString(36); }).join('');
+        }
+
+        function updateSyncBadge(mode) {
+            var badge = document.getElementById('sync-badge');
+            if (mode === 'cloud') {
+                badge.textContent = '☁️ Synchronisé'; badge.className = 'sync-badge cloud';
+            } else {
+                badge.textContent = '💾 Local'; badge.className = 'sync-badge local';
+            }
+        }
+
+        function startAutoSave() {
+            if (isSaving) return;
+            isSaving = true;
+            setInterval(function() {
+                if (listId) saveList();
+            }, 4000);
+        }
         document.addEventListener('DOMContentLoaded', function() {
             loadLists();
 
-            document.getElementById('category-input').addEventListener('keypress', (e) => {
+            document.getElementById('category-input').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') createCategory();
             });
         });

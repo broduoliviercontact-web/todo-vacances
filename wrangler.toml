@@ -1,0 +1,9 @@
+name = "todo-vacances"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+workers_dev = true
+account_id = "f5974f02ea5fdc8e42c347d2370f7540"
+
+[[kv_namespaces]]
+binding = "TODO_KV"
+id = "43759206351240e2bcf63b139a3e0e8d"

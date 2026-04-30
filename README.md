@@ -1,72 +1,48 @@
 # Todo Vacances
 
-Une petite application web en une seule page pour préparer une liste de choses à ne pas oublier avant de partir en vacances.
-
-Le site permet de créer plusieurs catégories, par exemple :
-
-- César
-- Miu
-- Papa
-- Maman
-- Plage
-- Voiture
-
-Chaque catégorie possède sa propre liste d'items et sa propre barre de progression.
+Une petite application web pour préparer une liste de choses à ne pas oublier avant de partir en vacances. Les données sont stockées dans le cloud via Cloudflare KV.
 
 ## Fonctionnalités
 
 - Ajouter des items dans une catégorie
 - Cocher les items déjà préparés
 - Supprimer un item
-- Créer une nouvelle catégorie
-- Supprimer une catégorie complète
+- Créer/supprimer des catégories
 - Voir la progression de chaque catégorie
-- Copier un lien partagé contenant toutes les données
+- **Sauvegarder dans le cloud** avec un ID court (paramètre `?list=`)
+- Partager le lien pour retrouver ou envoyer la liste
 
-## Comment utiliser le site
-
-1. Ouvrir la page du site.
-2. Créer une catégorie si besoin, par exemple `César` ou `Miu`.
-3. Ajouter les choses à préparer dans chaque catégorie.
-4. Cocher les éléments quand ils sont faits.
-5. Copier le lien partagé pour retrouver ou envoyer la liste.
-
-## Partage et sauvegarde
-
-Les données ne sont pas stockées sur un serveur.
-
-Toute la liste est encodée directement dans l'URL, dans le paramètre `d`.
-
-Cela veut dire que :
-
-- le lien contient toutes les catégories et tous les items ;
-- si tu partages le lien, l'autre personne voit la même liste ;
-- si tu modifies la liste, il faut recopier le nouveau lien pour partager la version à jour.
-
-## Structure du projet
-
-Le projet est volontairement très simple :
+## Architecture
 
 ```text
 .
-├── index.html
+├── src/index.js           # Worker (API + serveur HTML)
+├── public/index.html      # Application front-end
+├── wrangler.toml          # Config Cloudflare Workers
+├── package.json
 └── README.md
 ```
 
-Tout le code HTML, CSS et JavaScript se trouve dans `index.html`.
+Le worker sert :
+- **HTML** : lu depuis KV avec la clé `__index_html__`
+- **API** : `GET /api/lists/{id}` et `POST /api/lists/{id}`
 
 ## Déploiement
 
-Le site peut être hébergé facilement avec GitHub Pages ou n'importe quel hébergement statique.
+```bash
+npm install
+npm exec wrangler deploy
+```
 
-Avec GitHub Pages :
+Puis injecter `public/index.html` dans KV :
+```bash
+npm exec wrangler kv:key put --binding=TODO_KV __index_html__ --path ./public/index.html
+```
 
-1. Aller dans les paramètres du dépôt.
-2. Ouvrir la section **Pages**.
-3. Choisir la branche `main`.
-4. Sélectionner le dossier racine `/`.
-5. Enregistrer.
+## Stack technique
+- **Cloudflare Workers** : backend / edge
+- **Cloudflare KV** : stockage persistant des listes
 
-## Notes
+---
 
-Cette application est pensée pour être simple, rapide et utilisable sur téléphone.
+**URL publique** : https://todo-vacances.pliskain.workers.dev
