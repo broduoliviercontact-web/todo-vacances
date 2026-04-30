@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packing List - Vacances</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; color: white; margin-bottom: 5px; font-size: 1.8rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .subtitle { text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 30px; font-size: 0.9rem; }
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cesar { color: #e74c3c; }
+        .miu { color: #9b59b6; }
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.2s;
+        }
+        .item:last-child { border-bottom: none; }
+        .item:hover { background-color: #f8f9fa; }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            margin-right: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .checkbox:hover { border-color: #3498db; }
+        .checkbox.checked {
+            background-color: #2ecc71;
+            border-color: #2ecc71;
+        }
+        .checkbox.checked::after {
+            content: '\2713';
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .item-text { flex: 1; font-size: 1rem; }
+        .item-text.checked {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.3rem;
+            padding: 5px 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            line-height: 1;
+        }
+        .item:hover .delete-btn { opacity: 1; }
+        .add-item {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #ecf0f1;
+        }
+        .add-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .add-input:focus { border-color: #3498db; }
+        .add-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .add-btn:hover { background-color: #2980b9; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #2ecc71;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+        .share-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .share-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .share-url {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            word-break: break-all;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+        }
+        .copy-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        .copy-btn:hover { background-color: #27ae60; }
+        .copy-btn:active { transform: scale(0.98); }
+        .sync-info {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪟 Avant de partir</h1>
+        <p class="subtitle">Packing list - Vacances</p>
+
+        <div class="section">
+            <div class="section-title cesar">🙶 CÉSAR</div>
+            <div id="cesar-list"></div>
+            <div class="add-item">
+                <input type="text" class="add-input" id="cesar-input" placeholder="Ajouter un item...">
+                <button class="add-btn" onclick="addItem('cesar')">+</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="cesar-progress" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="cesar-progress-text">0 / 0</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title miu">🐱 MIU</div>
+            <div id="miu-list"></div>
+            <div class="add-item">
+                <input type="text" class="add-input" id="miu-input" placeholder="Ajouter un item...">
+                <button class="add-btn" onclick="addItem('miu')">+</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="miu-progress" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="miu-progress-text">0 / 0</div>
+        </div>
+
+        <div class="share-section">
+            <div class="share-title">🔗 Partager cette liste</div>
+            <input type="text" class="share-url" id="share-url" readonly>
+            <button class="copy-btn" onclick="copyLink()">📋 Copier le lien partagé</button>
+            <p class="sync-info">Toutes les données sont dans le lien. Partage = synchro immédiate.</p>
+        </div>
+    </div>
+
+    <script>
+        const initialData = {
+            cesar: [
+                "Repas", "Tenue piscine", "Chapeau été", "Couches", "Matelas à langer",
+                "Lunette de soleil", "Tenue été + tenue manche longue", "Casquette snoopy",
+                "1 gilet", "Turbulette", "Serviette", "Produit à langer + bain + Gant grenouille",
+                "Jouet + livre", "Tapis éveil", "Siège nomade",
+                "Trousse pharma (Doliprane et gel dent, sirop toux)", "Bavoir + 2 cuillères",
+                "Crème solaire", "Doudou", "Babyphone", "Drap matelas lit", "Boîte à musique",
+                "Petit ventilateur", "Lit parapluie (pour royan)", "Veilleuse"
+            ],
+            miu: ["Pled miu", "Croquette", "Litière", "Spray pheromone"]
+        };
+
+        let lists = {};
+
+        function encodeData(data) {
+            const compact = {};
+            Object.keys(data).forEach(cat => {
+                compact[cat] = data[cat].map(item => [item.text, item.checked ? 1 : 0]);
+            });
+            const json = JSON.stringify(compact);
+            const b64 = btoa(unescape(encodeURIComponent(json)));
+            return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        function decodeData(str) {
+            try {
+                str = str.replace(/-/g, '+').replace(/_/g, '/');
+                while (str.length % 4 !== 0) str += '=';
+                const json = decodeURIComponent(escape(atob(str)));
+                const data = JSON.parse(json);
+                const result = {};
+                Object.keys(data).forEach(cat => {
+                    result[cat] = data[cat].map(item => ({
+                        text: item[0],
+                        checked: !!item[1]
+                    }));
+                });
+                return result;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getShareUrl() {
+            const encoded = encodeData(lists);
+            const url = new URL(window.location.href);
+            url.searchParams.set('d', encoded);
+            return url.toString();
+        }
+
+        function updateUrl() {
+            const url = getShareUrl();
+            window.history.replaceState({}, '', url);
+            document.getElementById('share-url').value = url;
+        }
+
+        function loadLists() {
+            const params = new URLSearchParams(window.location.search);
+            const encoded = params.get('d');
+            if (encoded) {
+                const decoded = decodeData(encoded);
+                if (decoded) {
+                    lists = decoded;
+                    renderAll();
+                    updateProgress();
+                    updateUrl();
+                    return;
+                }
+            }
+            // Initial state
+            lists = {
+                cesar: initialData.cesar.map(text => ({ text, checked: false })),
+                miu: initialData.miu.map(text => ({ text, checked: false }))
+            };
+            renderAll();
+            updateProgress();
+            updateUrl();
+        }
+
+        function renderList(category) {
+            const container = document.getElementById(`${category}-list`);
+            container.innerHTML = '';
+            if (!lists[category] || lists[category].length === 0) {
+                container.innerHTML = '<div style="color:#95a5a6;text-align:center;padding:10px;">Aucun item</div>';
+                return;
+            }
+            lists[category].forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="checkbox ${item.checked ? 'checked' : ''}" onclick="toggleItem('${category}', ${index})"></div>
+                    <span class="item-text ${item.checked ? 'checked' : ''}">${escapeHtml(item.text)}</span>
+                    <button class="delete-btn" onclick="deleteItem('${category}', ${index})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderAll() {
+            renderList('cesar');
+            renderList('miu');
+        }
+
+        function toggleItem(category, index) {
+            lists[category][index].checked = !lists[category][index].checked;
+            renderList(category);
+            updateProgress();
+            updateUrl();
+        }
+
+        function deleteItem(category, index) {
+            lists[category].splice(index, 1);
+            renderList(category);
+            updateProgress();
+            updateUrl();
+        }
+
+        function addItem(category) {
+            const input = document.getElementById(`${category}-input`);
+            const text = input.value.trim();
+            if (text) {
+                lists[category].push({ text, checked: false });
+                input.value = '';
+                renderList(category);
+                updateProgress();
+                updateUrl();
+            }
+        }
+
+        function updateProgress() {
+            Object.keys(lists).forEach(category => {
+                const total = lists[category].length;
+                const checked = lists[category].filter(item => item.checked).length;
+                const percentage = total > 0 ? (checked / total) * 100 : 0;
+                document.getElementById(`${category}-progress`).style.width = `${percentage}%`;
+                document.getElementById(`${category}-progress-text`).textContent = `${checked} / ${total}`;
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyLink() {
+            const url = document.getElementById('share-url').value;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const original = btn.textContent;
+                btn.textContent = '✅ Copié !';
+                btn.style.backgroundColor = '#27ae60';
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.style.backgroundColor = '';
+                }, 2000);
+            }).catch(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '❌ Erreur de copie';
+                setTimeout(() => btn.textContent = '📋 Copier le lien partagé', 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLists();
+            document.getElementById('cesar-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addItem('cesar');
+            });
+            document.getElementById('miu-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addItem('miu');
+            });
+        });
+    </script>
+</body>
+</html>
