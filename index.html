@@ -16,7 +16,7 @@
         .container { max-width: 600px; margin: 0 auto; }
         h1 { text-align: center; color: white; margin-bottom: 5px; font-size: 1.8rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .subtitle { text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 30px; font-size: 0.9rem; }
-        .section {
+        .section, .category-tools {
             background: white;
             border-radius: 16px;
             padding: 20px;
@@ -31,10 +31,25 @@
             border-bottom: 2px solid #ecf0f1;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
         }
-        .cesar { color: #e74c3c; }
-        .miu { color: #9b59b6; }
+        .section-title-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .delete-category-btn {
+            background: #fbeaea;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 7px 10px;
+            border-radius: 8px;
+        }
+        .delete-category-btn:hover { background: #f5d0d0; }
         .item {
             display: flex;
             align-items: center;
@@ -85,15 +100,21 @@
             line-height: 1;
         }
         .item:hover .delete-btn { opacity: 1; }
-        .add-item {
+        .add-item, .add-category {
             display: flex;
             gap: 10px;
             margin-top: 15px;
             padding-top: 15px;
             border-top: 2px solid #ecf0f1;
         }
+        .add-category {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
         .add-input {
             flex: 1;
+            min-width: 0;
             padding: 10px 15px;
             border: 2px solid #ecf0f1;
             border-radius: 8px;
@@ -112,6 +133,12 @@
             font-weight: 600;
         }
         .add-btn:hover { background-color: #2980b9; }
+        .category-help {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
         .progress-bar {
             width: 100%;
             height: 8px;
@@ -175,6 +202,11 @@
             font-size: 0.85rem;
             margin-top: 10px;
         }
+        @media (max-width: 420px) {
+            .add-category { flex-direction: column; }
+            .add-btn { width: 100%; }
+            .section-title { align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -182,31 +214,16 @@
         <h1>🪟 Avant de partir</h1>
         <p class="subtitle">Packing list - Vacances</p>
 
-        <div class="section">
-            <div class="section-title cesar">🙶 CÉSAR</div>
-            <div id="cesar-list"></div>
-            <div class="add-item">
-                <input type="text" class="add-input" id="cesar-input" placeholder="Ajouter un item...">
-                <button class="add-btn" onclick="addItem('cesar')">+</button>
+        <div class="category-tools">
+            <div class="share-title">➕ Créer une catégorie</div>
+            <div class="add-category">
+                <input type="text" class="add-input" id="category-input" placeholder="Ex : César, Miu, Papa, Plage...">
+                <button class="add-btn" onclick="createCategory()">Créer</button>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="cesar-progress" style="width: 0%"></div>
-            </div>
-            <div class="progress-text" id="cesar-progress-text">0 / 0</div>
+            <p class="category-help">Chaque catégorie a sa propre liste, sa progression et elle est incluse dans le lien partagé.</p>
         </div>
 
-        <div class="section">
-            <div class="section-title miu">🐱 MIU</div>
-            <div id="miu-list"></div>
-            <div class="add-item">
-                <input type="text" class="add-input" id="miu-input" placeholder="Ajouter un item...">
-                <button class="add-btn" onclick="addItem('miu')">+</button>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="miu-progress" style="width: 0%"></div>
-            </div>
-            <div class="progress-text" id="miu-progress-text">0 / 0</div>
-        </div>
+        <div id="categories-container"></div>
 
         <div class="share-section">
             <div class="share-title">🔗 Partager cette liste</div>
@@ -217,6 +234,11 @@
     </div>
 
     <script>
+        const initialCategories = [
+            { id: 'cesar', name: 'César', icon: '👶', color: '#e74c3c' },
+            { id: 'miu', name: 'Miu', icon: '🐱', color: '#9b59b6' }
+        ];
+
         const initialData = {
             cesar: [
                 "Repas", "Tenue piscine", "Chapeau été", "Couches", "Matelas à langer",
@@ -230,14 +252,30 @@
             miu: ["Pled miu", "Croquette", "Litière", "Spray pheromone"]
         };
 
-        let lists = {};
+        const categoryColors = ['#e74c3c', '#9b59b6', '#3498db', '#f39c12', '#16a085', '#d35400', '#2c3e50', '#27ae60'];
+        const categoryIcons = ['🧳', '👕', '🧸', '🏖️', '🚗', '🏠', '⭐', '📦'];
 
-        function encodeData(data) {
-            const compact = {};
-            Object.keys(data).forEach(cat => {
-                compact[cat] = data[cat].map(item => [item.text, item.checked ? 1 : 0]);
+        let lists = {};
+        let categories = [];
+
+        function encodeData() {
+            const compactLists = {};
+            Object.keys(lists).forEach(cat => {
+                compactLists[cat] = lists[cat].map(item => [item.text, item.checked ? 1 : 0]);
             });
-            const json = JSON.stringify(compact);
+
+            const compactCategories = categories.map(category => [
+                category.id,
+                category.name,
+                category.icon,
+                category.color
+            ]);
+
+            const json = JSON.stringify({
+                v: 2,
+                c: compactCategories,
+                l: compactLists
+            });
             const b64 = btoa(unescape(encodeURIComponent(json)));
             return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
@@ -248,21 +286,54 @@
                 while (str.length % 4 !== 0) str += '=';
                 const json = decodeURIComponent(escape(atob(str)));
                 const data = JSON.parse(json);
-                const result = {};
+
+                if (data.v === 2 && Array.isArray(data.c) && data.l) {
+                    const decodedLists = {};
+                    Object.keys(data.l).forEach(cat => {
+                        decodedLists[cat] = data.l[cat].map(item => ({
+                            text: item[0],
+                            checked: !!item[1]
+                        }));
+                    });
+
+                    const decodedCategories = data.c.map(category => ({
+                        id: category[0],
+                        name: category[1],
+                        icon: category[2] || '🧳',
+                        color: category[3] || '#3498db'
+                    })).filter(category => decodedLists[category.id]);
+
+                    return {
+                        categories: decodedCategories,
+                        lists: decodedLists
+                    };
+                }
+
+                // Compatibilité avec les anciens liens partagés.
+                const decodedLists = {};
                 Object.keys(data).forEach(cat => {
-                    result[cat] = data[cat].map(item => ({
+                    decodedLists[cat] = data[cat].map(item => ({
                         text: item[0],
                         checked: !!item[1]
                     }));
                 });
-                return result;
+
+                return {
+                    categories: Object.keys(decodedLists).map((id, index) => ({
+                        id,
+                        name: getDefaultCategoryName(id),
+                        icon: id === 'cesar' ? '👶' : id === 'miu' ? '🐱' : '🧳',
+                        color: categoryColors[index % categoryColors.length]
+                    })),
+                    lists: decodedLists
+                };
             } catch (e) {
                 return null;
             }
         }
 
         function getShareUrl() {
-            const encoded = encodeData(lists);
+            const encoded = encodeData();
             const url = new URL(window.location.href);
             url.searchParams.set('d', encoded);
             return url.toString();
@@ -280,30 +351,71 @@
             if (encoded) {
                 const decoded = decodeData(encoded);
                 if (decoded) {
-                    lists = decoded;
+                    categories = decoded.categories;
+                    lists = decoded.lists;
                     renderAll();
                     updateProgress();
                     updateUrl();
                     return;
                 }
             }
-            // Initial state
-            lists = {
-                cesar: initialData.cesar.map(text => ({ text, checked: false })),
-                miu: initialData.miu.map(text => ({ text, checked: false }))
-            };
+
+            categories = initialCategories.map(category => ({ ...category }));
+            lists = {};
+            Object.keys(initialData).forEach(categoryId => {
+                lists[categoryId] = initialData[categoryId].map(text => ({ text, checked: false }));
+            });
+
             renderAll();
             updateProgress();
             updateUrl();
         }
 
+        function renderAll() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+            categories.forEach(category => {
+                const section = document.createElement('div');
+                section.className = 'section';
+                section.innerHTML = `
+                    <div class="section-title" style="color: ${category.color}">
+                        <div class="section-title-main">
+                            <span>${escapeHtml(category.icon)}</span>
+                            <span>${escapeHtml(category.name).toUpperCase()}</span>
+                        </div>
+                        <button class="delete-category-btn" onclick="deleteCategory('${category.id}')">Supprimer</button>
+                    </div>
+                    <div id="${category.id}-list"></div>
+                    <div class="add-item">
+                        <input type="text" class="add-input" id="${category.id}-input" placeholder="Ajouter un item...">
+                        <button class="add-btn" onclick="addItem('${category.id}')">+</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="${category.id}-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="${category.id}-progress-text">0 / 0</div>
+                `;
+                container.appendChild(section);
+
+                document.getElementById(`${category.id}-input`).addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addItem(category.id);
+                });
+
+                renderList(category.id);
+            });
+        }
+
         function renderList(category) {
             const container = document.getElementById(`${category}-list`);
+            if (!container) return;
+
             container.innerHTML = '';
             if (!lists[category] || lists[category].length === 0) {
                 container.innerHTML = '<div style="color:#95a5a6;text-align:center;padding:10px;">Aucun item</div>';
                 return;
             }
+
             lists[category].forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'item';
@@ -314,11 +426,6 @@
                 `;
                 container.appendChild(div);
             });
-        }
-
-        function renderAll() {
-            renderList('cesar');
-            renderList('miu');
         }
 
         function toggleItem(category, index) {
@@ -347,14 +454,93 @@
             }
         }
 
+        function createCategory() {
+            const input = document.getElementById('category-input');
+            const name = input.value.trim();
+
+            if (!name) return;
+
+            const id = createUniqueCategoryId(name);
+            const index = categories.length;
+            const category = {
+                id,
+                name,
+                icon: categoryIcons[index % categoryIcons.length],
+                color: categoryColors[index % categoryColors.length]
+            };
+
+            categories.push(category);
+            lists[id] = [];
+            input.value = '';
+
+            renderAll();
+            updateProgress();
+            updateUrl();
+
+            setTimeout(() => {
+                const newInput = document.getElementById(`${id}-input`);
+                if (newInput) newInput.focus();
+            }, 0);
+        }
+
+        function deleteCategory(categoryId) {
+            const category = categories.find(item => item.id === categoryId);
+            if (!category) return;
+
+            const hasItems = lists[categoryId] && lists[categoryId].length > 0;
+            const message = hasItems
+                ? `Supprimer la catégorie "${category.name}" et tous ses items ?`
+                : `Supprimer la catégorie "${category.name}" ?`;
+
+            if (!confirm(message)) return;
+
+            categories = categories.filter(item => item.id !== categoryId);
+            delete lists[categoryId];
+
+            renderAll();
+            updateProgress();
+            updateUrl();
+        }
+
         function updateProgress() {
-            Object.keys(lists).forEach(category => {
-                const total = lists[category].length;
-                const checked = lists[category].filter(item => item.checked).length;
+            categories.forEach(category => {
+                const total = lists[category.id] ? lists[category.id].length : 0;
+                const checked = lists[category.id] ? lists[category.id].filter(item => item.checked).length : 0;
                 const percentage = total > 0 ? (checked / total) * 100 : 0;
-                document.getElementById(`${category}-progress`).style.width = `${percentage}%`;
-                document.getElementById(`${category}-progress-text`).textContent = `${checked} / ${total}`;
+                const progress = document.getElementById(`${category.id}-progress`);
+                const text = document.getElementById(`${category.id}-progress-text`);
+
+                if (progress) progress.style.width = `${percentage}%`;
+                if (text) text.textContent = `${checked} / ${total}`;
             });
+        }
+
+        function createUniqueCategoryId(name) {
+            const base = slugify(name) || `categorie-${Date.now()}`;
+            let id = base;
+            let suffix = 2;
+
+            while (lists[id]) {
+                id = `${base}-${suffix}`;
+                suffix += 1;
+            }
+
+            return id;
+        }
+
+        function slugify(text) {
+            return text
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function getDefaultCategoryName(id) {
+            if (id === 'cesar') return 'César';
+            if (id === 'miu') return 'Miu';
+            return id.replace(/-/g, ' ');
         }
 
         function escapeHtml(text) {
@@ -383,11 +569,9 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadLists();
-            document.getElementById('cesar-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addItem('cesar');
-            });
-            document.getElementById('miu-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addItem('miu');
+
+            document.getElementById('category-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') createCategory();
             });
         });
     </script>
