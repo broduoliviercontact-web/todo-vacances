@@ -224,6 +224,57 @@
         .sync-badge.local { background: #ffeaa7; color: #b8860b; }
         .sync-badge.cloud { background: #d4edda; color: #155724; }
         .item-actions { opacity: 1 !important; }
+        .item-with-subs { flex-wrap: wrap; }
+        .item-header { display: flex; align-items: center; flex: 1; gap: 8px; min-width: 0; }
+        .toggle-sub-btn {
+            background: #f0f4ff; border: none; color: #3498db; cursor: pointer;
+            font-size: 0.72rem; padding: 2px 7px; border-radius: 10px;
+            font-weight: 600; white-space: nowrap; flex-shrink: 0;
+        }
+        .toggle-sub-btn:hover { background: #dbeafe; }
+        .sub-items-container {
+            width: 100%; margin-left: 36px; padding: 4px 0 4px 10px;
+            border-left: 2px solid #dbeafe; margin-top: 6px;
+        }
+        .sub-item {
+            display: flex; align-items: center; padding: 3px 0;
+            font-size: 0.88rem; color: #555;
+        }
+        .sub-item .checkbox {
+            width: 18px; height: 18px; border-width: 1.5px; margin-right: 8px;
+        }
+        .sub-item .checkbox.checked::after { font-size: 12px; }
+        .sub-item-text {
+            flex: 1; margin-left: 0;
+        }
+        .sub-item-text.checked {
+            text-decoration: line-through; color: #95a5a6;
+        }
+        .delete-sub-btn {
+            background: none; border: none; color: #e74c3c;
+            cursor: pointer; font-size: 1.1rem; padding: 1px 5px;
+            opacity: 0; line-height: 1;
+        }
+        .sub-item:hover .delete-sub-btn { opacity: 1; }
+        .add-sub-item {
+            display: flex; gap: 6px; margin-top: 4px; padding: 4px 0;
+        }
+        .add-sub-input {
+            flex: 1; min-width: 0; padding: 5px 10px;
+            border: 1px solid #ecf0f1; border-radius: 6px;
+            font-size: 0.82rem; outline: none;
+        }
+        .add-sub-input:focus { border-color: #3498db; }
+        .add-sub-btn {
+            background: #3498db; color: white; border: none;
+            padding: 5px 10px; border-radius: 6px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .sub-item-count {
+            background: #dbeafe; color: #2563eb;
+            font-size: 0.68rem; padding: 1px 6px;
+            border-radius: 8px; font-weight: 700; flex-shrink: 0;
+        }
 
     </style>
 </head>
@@ -264,15 +315,38 @@
 
         const initialData = {
             cesar: [
-                "Repas", "Tenue piscine", "Chapeau été", "Couches", "Matelas à langer",
-                "Lunette de soleil", "Tenue été + tenue manche longue", "Casquette snoopy",
-                "1 gilet", "Turbulette", "Serviette", "Produit à langer + bain + Gant grenouille",
-                "Jouet + livre", "Tapis éveil", "Siège nomade",
-                "Trousse pharma (Doliprane et gel dent, sirop toux)", "Bavoir + 2 cuillères",
-                "Crème solaire", "Doudou", "Babyphone", "Drap matelas lit", "Boîte à musique",
-                "Petit ventilateur", "Lit parapluie (pour royan)", "Veilleuse"
+                { text: "Repas", checked: false },
+                { text: "Tenue piscine", checked: false },
+                { text: "Chapeau été", checked: false },
+                { text: "Couches", checked: false },
+                { text: "Matelas à langer", checked: false },
+                { text: "Lunette de soleil", checked: false },
+                { text: "Tenue été + tenue manche longue", checked: false },
+                { text: "Casquette snoopy", checked: false },
+                { text: "1 gilet", checked: false },
+                { text: "Turbulette", checked: false },
+                { text: "Serviette", checked: false },
+                { text: "Produit à langer + bain + Gant grenouille", checked: false },
+                { text: "Jouet + livre", checked: false },
+                { text: "Tapis éveil", checked: false },
+                { text: "Siège nomade", checked: false },
+                { text: "Trousse pharma", checked: false, subs: ["Doliprane", "gel dent", "sirop toux"] },
+                { text: "Bavoir + 2 cuillères", checked: false },
+                { text: "Crème solaire", checked: false },
+                { text: "Doudou", checked: false },
+                { text: "Babyphone", checked: false },
+                { text: "Drap matelas lit", checked: false },
+                { text: "Boîte à musique", checked: false },
+                { text: "Petit ventilateur", checked: false },
+                { text: "Lit parapluie (pour royan)", checked: false },
+                { text: "Veilleuse", checked: false }
             ],
-            miu: ["Pled miu", "Croquette", "Litière", "Spray pheromone"]
+            miu: [
+                { text: "Pled miu", checked: false },
+                { text: "Croquette", checked: false },
+                { text: "Litière", checked: false },
+                { text: "Spray pheromone", checked: false }
+            ]
         };
 
         const categoryColors = ['#e74c3c', '#9b59b6', '#3498db', '#f39c12', '#16a085', '#d35400', '#2c3e50', '#27ae60'];
@@ -286,7 +360,11 @@
         function encodeData() {
             const compactLists = {};
             Object.keys(lists).forEach(cat => {
-                compactLists[cat] = lists[cat].map(item => [item.text, item.checked ? 1 : 0]);
+                compactLists[cat] = lists[cat].map(item => {
+                    const arr = [item.text, item.checked ? 1 : 0];
+                    if (item.subs && item.subs.length > 0) arr.push(item.subs);
+                    return arr;
+                });
             });
 
             const compactCategories = categories.map(category => [
@@ -315,10 +393,11 @@
                 if (data.v === 2 && Array.isArray(data.c) && data.l) {
                     const decodedLists = {};
                     Object.keys(data.l).forEach(cat => {
-                        decodedLists[cat] = data.l[cat].map(item => ({
-                            text: item[0],
-                            checked: !!item[1]
-                        }));
+                        decodedLists[cat] = data.l[cat].map(item => {
+                            const obj = { text: item[0], checked: !!item[1] };
+                            if (item.length >= 3 && Array.isArray(item[2])) obj.subs = item[2];
+                            return obj;
+                        });
                     });
 
                     const decodedCategories = data.c.map(category => ({
@@ -337,10 +416,11 @@
                 // Compatibilité avec les anciens liens partagés.
                 const decodedLists = {};
                 Object.keys(data).forEach(cat => {
-                    decodedLists[cat] = data[cat].map(item => ({
-                        text: item[0],
-                        checked: !!item[1]
-                    }));
+                    decodedLists[cat] = data[cat].map(item => {
+                        const obj = { text: item[0], checked: !!item[1] };
+                        if (item.length >= 3 && Array.isArray(item[2])) obj.subs = item[2];
+                        return obj;
+                    });
                 });
 
                 return {
@@ -412,7 +492,10 @@
             categories = initialCategories.map(category => ({ ...category }));
             lists = {};
             Object.keys(initialData).forEach(categoryId => {
-                lists[categoryId] = initialData[categoryId].map(text => ({ text, checked: false }));
+                lists[categoryId] = initialData[categoryId].map(item => {
+                    if (typeof item === 'string') return { text: item, checked: false };
+                    return { ...item };
+                });
             });
 
             renderAll();
@@ -466,14 +549,53 @@
             }
 
             lists[category].forEach((item, index) => {
+                const hasSubs = item.subs && item.subs.length > 0;
                 const div = document.createElement('div');
-                div.className = 'item';
-                div.innerHTML = `
-                    <div class="checkbox ${item.checked ? 'checked' : ''}" onclick="toggleItem('${category}', ${index})"></div>
-                    <span class="item-text ${item.checked ? 'checked' : ''}">${escapeHtml(item.text)}</span>
+                div.className = 'item' + (hasSubs ? ' item-with-subs' : '');
+                
+                let html = `
+                    <div class="item-header">
+                        <div class="checkbox ${item.checked ? 'checked' : ''}" onclick="toggleItem('${category}', ${index})"></div>
+                        <span class="item-text ${item.checked ? 'checked' : ''}">${escapeHtml(item.text)}</span>
+                        ${hasSubs ? `<span class="sub-item-count">${item.subs.filter(s => typeof s === 'object' ? s.checked : false).length}/${item.subs.length}</span>` : ''}
+                    </div>
                     <button class="delete-btn" onclick="deleteItem('${category}', ${index})">×</button>
                 `;
+                
+                if (hasSubs) {
+                    html += `<button class="toggle-sub-btn" onclick="toggleSubVisibility(${index}, '${category}')">▼ Détails</button>`;
+                    html += `<div class="sub-items-container" id="sub-${category}-${index}" style="display:none;">`;
+                    item.subs.forEach((sub, subIndex) => {
+                        const isObj = typeof sub === 'object';
+                        const subText = isObj ? sub.text : sub;
+                        const subChecked = isObj ? sub.checked : false;
+                        html += `
+                            <div class="sub-item">
+                                <div class="checkbox ${subChecked ? 'checked' : ''}" onclick="toggleSubItem('${category}', ${index}, ${subIndex})"></div>
+                                <span class="sub-item-text ${subChecked ? 'checked' : ''}">${escapeHtml(subText)}</span>
+                                <button class="delete-sub-btn" onclick="deleteSubItem('${category}', ${index}, ${subIndex})">×</button>
+                            </div>
+                        `;
+                    });
+                    html += `
+                        <div class="add-sub-item">
+                            <input type="text" class="add-sub-input" id="sub-input-${category}-${index}" placeholder="Ajouter...">
+                            <button class="add-sub-btn" onclick="addSubItem('${category}', ${index})">+</button>
+                        </div>
+                    </div>`;
+                }
+                
+                div.innerHTML = html;
                 container.appendChild(div);
+                
+                if (hasSubs) {
+                    const subInput = document.getElementById(`sub-input-${category}-${index}`);
+                    if (subInput) {
+                        subInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') addSubItem(category, index);
+                        });
+                    }
+                }
             });
         }
 
@@ -551,10 +673,68 @@
             updateUrl();
         }
 
+        function toggleSubVisibility(index, category) {
+            const container = document.getElementById(`sub-${category}-${index}`);
+            const btn = container.previousElementSibling;
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                btn.textContent = '▲ Masquer';
+            } else {
+                container.style.display = 'none';
+                btn.textContent = '▼ Détails';
+            }
+        }
+
+        function toggleSubItem(category, itemIndex, subIndex) {
+            const sub = lists[category][itemIndex].subs[subIndex];
+            if (typeof sub === 'string') {
+                lists[category][itemIndex].subs[subIndex] = { text: sub, checked: true };
+            } else {
+                sub.checked = !sub.checked;
+            }
+            renderList(category);
+            updateProgress();
+            updateUrl();
+        }
+
+        function deleteSubItem(category, itemIndex, subIndex) {
+            lists[category][itemIndex].subs.splice(subIndex, 1);
+            if (lists[category][itemIndex].subs.length === 0) {
+                delete lists[category][itemIndex].subs;
+            }
+            renderList(category);
+            updateProgress();
+            updateUrl();
+        }
+
+        function addSubItem(category, itemIndex) {
+            const input = document.getElementById(`sub-input-${category}-${itemIndex}`);
+            const text = input.value.trim();
+            if (text) {
+                if (!lists[category][itemIndex].subs) lists[category][itemIndex].subs = [];
+                lists[category][itemIndex].subs.push({ text, checked: false });
+                input.value = '';
+                renderList(category);
+                updateProgress();
+                updateUrl();
+            }
+        }
+
         function updateProgress() {
             categories.forEach(category => {
-                const total = lists[category.id] ? lists[category.id].length : 0;
-                const checked = lists[category.id] ? lists[category.id].filter(item => item.checked).length : 0;
+                let total = 0, checked = 0;
+                if (lists[category.id]) {
+                    lists[category.id].forEach(item => {
+                        total++;
+                        if (item.checked) checked++;
+                        if (item.subs) {
+                            item.subs.forEach(sub => {
+                                total++;
+                                if (typeof sub === 'object' && sub.checked) checked++;
+                            });
+                        }
+                    });
+                }
                 const percentage = total > 0 ? (checked / total) * 100 : 0;
                 const progress = document.getElementById(`${category.id}-progress`);
                 const text = document.getElementById(`${category.id}-progress-text`);
