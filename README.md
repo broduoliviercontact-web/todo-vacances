@@ -1,5 +1,7 @@
 # Todo Vacances ☁️
 
+https://todo-vacances.pliskain.workers.dev/
+
 Application web pour préparer sa valise avant les vacances.
 Passe de catégorie en catégorie (César, Miu, Plage, etc.), coche ce qui est prêt, et partage ta liste avec un lien court.
 
