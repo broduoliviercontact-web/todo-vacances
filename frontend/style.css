@@ -445,8 +445,18 @@ body::before {
     font-size: 0.85rem;
     min-width: 34px;
   }
-  .sub-items { margin-left: 24px; padding-left: 10px; }
+  .sub-items { margin-left: 16px; padding-left: 8px; }
   .sub-add-btn { font-size: 0.75rem; padding: 3px 8px; }
+  .sub-add-form { gap: 4px; }
+  .sub-add-form .add-input {
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+  .sub-add-form .btn-sm {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    min-width: 36px;
+  }
 }
 
 @media (min-width: 768px) {
