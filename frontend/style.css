@@ -434,7 +434,17 @@ body::before {
   .category-title { font-size: 1rem; }
   .item-text { font-size: 0.9rem; }
   .add-form { gap: 6px; }
-  .add-input { padding: 10px 12px; font-size: 0.9rem; }
+  .add-form .add-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+  .add-form .btn-sm {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    min-width: 34px;
+  }
   .sub-items { margin-left: 24px; padding-left: 10px; }
   .sub-add-btn { font-size: 0.75rem; padding: 3px 8px; }
 }
