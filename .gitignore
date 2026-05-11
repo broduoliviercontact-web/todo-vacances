@@ -7,3 +7,7 @@ node_modules/
 
 # macOS
 .DS_Store
+.wrangler/
+.herenow/
+node_modules/
+*.log

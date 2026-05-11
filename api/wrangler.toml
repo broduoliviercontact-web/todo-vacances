@@ -1,0 +1,7 @@
+name = "packing-list-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-30"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "e0624865b0c04bd19d01896f2043dda1"

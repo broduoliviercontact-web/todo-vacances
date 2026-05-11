@@ -1,19 +1,14 @@
 {
   "name": "todo-vacances",
   "version": "2.0.0",
-  "description": "Packing list app with cloud save via Cloudflare Workers + KV",
-  "main": "src/index.js",
+  "description": "Packing list app for holidays \u2014 Cloudflare Workers + vanilla JS frontend",
+  "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "kv:put-index": "wrangler kv:key put --binding=TODO_KV __index_html__ --path ./public/index.html",
-    "kv:list": "wrangler kv:key list --binding=TODO_KV",
-    "setup": "npm run deploy && npm run kv:put-index"
+    "deploy": "cd api && wrangler deploy",
+    "dev": "cd api && wrangler dev"
   },
-  "keywords": ["cloudflare", "workers", "kv", "packing-list"],
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "wrangler": "^4.86.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/broduoliviercontact-web/todo-vacances.git"
   }
 }
